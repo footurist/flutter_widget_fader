@@ -1,10 +1,14 @@
 # widget_fader
 
-Cross-fades widgets in both directions, automatically or not.
+Cross-fades widgets in both directions.
+Supports:
+* Infinite cross-fading in both directions
+* Swipe to fade
+* Fading via the functions next() and previous()
 
 ## Installation
 
-Add ``widget_fader: ^0.0.5`` in your ``pubspec.yaml`` dependencies. And import it:
+Add ``widget_fader: ^0.0.6`` in your ``pubspec.yaml`` dependencies. And import it:
 ```dart
 import 'package:widget_fader/widget_fader.dart';
 ```
@@ -20,13 +24,13 @@ WidgetFader(
         )
     ),
     reverse: true,
-    fadeDuration: 1000,
-    pauseDuration: 2000,
+    fadeDuration: 750,
+    pauseDuration: 750,
 );
 ```
 
 ## Future functionality
 
-* swipe to fade
+* Got any ideas? Make a feature request at the repo or contact me.
 
 

@@ -4,6 +4,7 @@ import "dart:async";
 
 import "package:flutter/material.dart";
 
+import "package:carousel_slider/carousel_slider.dart";
 import "package:rxdart/rxdart.dart";
 
 /// (Automatically) cross-fades between [children] in both directions.
@@ -11,29 +12,33 @@ import "package:rxdart/rxdart.dart";
 /// The [children] expand to fill the stack they're in.
 /// Provides an optional [cover] that partially covers
 /// the [children].
+/// 
+/// All time parameters are in milliseconds.
 class WidgetFader extends StatefulWidget {
   WidgetFader({
-    @required List<Widget> children,
+    @required this.children,
     this.fadeDuration = 750,
     this.pauseDuration = 750,
+    this.onTouchPauseDuration = 2000,
     this.reverse = false,
     this.auto = true,
     this.cover,
-    this.startIndex = 0
-  }):
-    this.children = children,
-    this._maxIndex = children.length - 1;
+    this.startIndex = 0,
+    /// Number of pages to simulate infinite backward scrolling.
+    this.fakeInfinitePageCount = 10000
+  });
 
   final List<Widget> children;
   /// A widget on the front to partially cover the [children].
   final Widget cover;
-  /// Changes require recreating the state to take effect.
   final int fadeDuration;
   final int pauseDuration;
+  final int onTouchPauseDuration;
   final bool reverse;
   final bool auto;
   final int startIndex;
-  final int _maxIndex;
+  /// The number of pages used to simulate infinite backward scroll.
+  final int fakeInfinitePageCount;
   final _nextPageMode = BehaviorSubject<String>();
 
   void next() => _nextPageMode.add("next");
@@ -48,24 +53,40 @@ class WidgetFader extends StatefulWidget {
 }
 
 class _WidgetFaderState extends State<WidgetFader> with TickerProviderStateMixin {
-  List<Widget> _children;
+  CarouselSlider _carouselSlider;
   List<AnimationController> _controllers;
   List<Animation> _animations;
-  Timer _autoTimer;
-  int _currentPage;
-  StreamSubscription _nextPageModeSubscription;
-  bool _reverse;
+  Map<String, StreamSubscription> _subscriptions = {};
 
   void initState() { 
     super.initState();
 
     _init();
     _listen();
-    _loop(); 
   }
-  
+
   void _init() {
-    _controllers = List.generate(
+    _initAnimation();
+    _initCarouselSlider();
+  }
+
+  void _initCarouselSlider() => _carouselSlider = CarouselSlider(
+    realPage: widget.fakeInfinitePageCount,
+    autoPlay: widget.auto,
+    autoPlayAnimationDuration: Duration(milliseconds: widget.fadeDuration),
+    autoPlayInterval: Duration(milliseconds: widget.pauseDuration),
+    pauseAutoPlayOnTouch: Duration(milliseconds: widget.onTouchPauseDuration),
+    reverse: widget.reverse,
+    height: double.infinity,
+    viewportFraction: 1.0,
+    items: List.generate(
+      widget.children.length, 
+      (i) => Container(color: [Colors.amber, Colors.green, Colors.red][i % 3].withAlpha(0))
+    ),
+  );
+
+  void _initAnimation() {
+     _controllers = List.generate(
       widget.children.length,
       (i) => AnimationController(
         vsync: this,
@@ -76,57 +97,57 @@ class _WidgetFaderState extends State<WidgetFader> with TickerProviderStateMixin
       widget.children.length,
       (i) => Tween(begin: 0.0, end: 1.0).animate(_controllers[i])
     );
-    _currentPage = widget.startIndex;
-    _children = _buildChildren();
-    _reverse = widget.reverse;
+    _controllers[0].value = 1.0;
   }
-  
+
   void _listen() {
-    widget._nextPageMode.listen(_nextPage);
-  }
-
-  void _loop() {
-    if (widget.auto) {
-      _play();
-      _autoTimer = Timer.periodic(
-        Duration(milliseconds: widget.fadeDuration + widget.pauseDuration),
-        (_) => _play()
-      );
-    }
-  }
-
-  int _calcNextPage(int page) {
-    if (_reverse) {
-      page--;
-
-      if (page < 0) page = widget._maxIndex;
-    } else {
-      page++;
-      
-      if (page > widget._maxIndex) page = 0;
-    }
-
-    return page;
+    _carouselSlider.pageController.addListener(_setOpacities);
+    _subscriptions["nextPageMode"] = widget._nextPageMode.listen(
+      (mode) => _nextPage(mode)
+    );
   }
 
   void _nextPage(String mode) {
-    if (!widget.auto) {
-      if (mode == "next") {
-        _reverse = false;
-        _play();
-      } else if (mode == "previous") {
-        _reverse = true;
-        _play();
-      }
-      _reverse = widget.reverse;
+    var params = [
+      Duration(milliseconds: widget.fadeDuration),
+      Curves.easeInOut
+    ];
+
+    if (mode == "next")
+      _carouselSlider.nextPage(duration: params[0], curve: params[1]);
+    else _carouselSlider.previousPage(duration: params[0], curve: params[1]);
+  }
+
+  void _setOpacities() {
+    final currentUncappedPage = _getCurrentUncappedPage();
+    final currentPageProgress = currentUncappedPage % 1;
+    final currentPage = _capPage(currentUncappedPage.round());
+
+    var otherPage;
+
+    if (currentPageProgress < 0.5) {
+      otherPage = _capPage(currentPage + 1);
+      _controllers[currentPage].value = 1 - currentPageProgress;
+      _controllers[otherPage].value = currentPageProgress;
+    } else {
+      otherPage = _capPage(currentPage - 1);
+      _controllers[currentPage].value = currentPageProgress;
+      _controllers[otherPage].value = 1 - currentPageProgress;
     }
   }
 
-  void _play() {
-    _controllers[_currentPage].value = 1.0;
-    _controllers[_currentPage].reverse();
-    _controllers[_calcNextPage(_currentPage)].forward();
-    _currentPage = _calcNextPage(_currentPage);
+  double _getCurrentUncappedPage() {
+    final controller = _carouselSlider.pageController;
+    final double offset = controller.page - _carouselSlider.realPage;
+
+
+    return offset;
+  }
+
+  int _capPage(int page) {
+    page = page % widget.children.length;
+
+    return (page < 0)? page += widget.children.length: page;
   }
 
   List<Widget> _buildChildren() => List.generate(
@@ -139,12 +160,14 @@ class _WidgetFaderState extends State<WidgetFader> with TickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Stack(
+      fit: StackFit.expand,
       children: <Widget>[
         Stack(
           fit: StackFit.expand,
-          children: _children,
+          children: _buildChildren(),
         ),
-        widget.cover?? Container()
+        widget.cover?? Container(),
+        _carouselSlider
       ],
     );
   }
@@ -152,8 +175,7 @@ class _WidgetFaderState extends State<WidgetFader> with TickerProviderStateMixin
   @override
   void dispose() {
     _controllers.forEach((c) => c.dispose());
-    _autoTimer.cancel();
-    _nextPageModeSubscription?.cancel();
+    _subscriptions.forEach((str, sub) => sub.cancel());
     widget._dispose();
 
     super.dispose();
