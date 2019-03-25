@@ -12,7 +12,7 @@ Supports:
 
 ## Installation
 
-Add ``widget_fader: ^0.0.6`` in your ``pubspec.yaml`` dependencies. And import it:
+Add ``widget_fader: ^0.0.7`` in your ``pubspec.yaml`` dependencies. And import it:
 ```dart
 import 'package:widget_fader/widget_fader.dart';
 ```
