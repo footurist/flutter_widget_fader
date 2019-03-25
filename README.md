@@ -16,21 +16,45 @@ import 'package:widget_fader/widget_fader.dart';
 ## How to use
 
 ```dart
-WidgetFader(
-    children: List.generate(
-        3, 
-        (i) => Container(
-            color: [Colors.red, Colors.green, Colors.blue][i]
-        )
-    ),
-    reverse: true,
+List<Widget> _buildWidgetFaderChildren() {
+    var assetPath = "assets/widgetFader";
+
+    return List.generate(
+      3, 
+      (i) => Container(
+        child: Image.asset(
+          assetPath + i.toString() + ".jpg",
+          fit: BoxFit.cover,
+        ),
+      )
+    );
+}
+
+WidgetFader _buildWidgetFader() => WidgetFader(
+    children: _buildWidgetFaderChildren(),
     fadeDuration: 750,
     pauseDuration: 750,
+    cover: Column(
+      children: <Widget>[
+        Expanded(child: Container()),
+        Container(
+          height: 150,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/widgetFaderCover.jpg"),
+              fit: BoxFit.cover
+            )
+          ),
+        )
+      ],
+    ),
 );
 ```
 
 ## Future functionality
 
 * Got any ideas? Make a feature request at the repo or contact me.
+* Rotation
+* Scaling
 
 
