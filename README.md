@@ -8,7 +8,7 @@ Supports:
 
 ## Example
 
-<img src="https://media.giphy.com/media/jlcmSkvhF8jOjsg014/200w_d.gif" width="270" height="480" />
+<img src="https://media.giphy.com/media/jlcmSkvhF8jOjsg014/giphy.gif" width="270" height="480" />
 
 ## Installation
 
