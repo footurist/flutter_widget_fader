@@ -1,6 +1,6 @@
 name: widget_fader
 description: Cross-fades widgets in both directions, automatically or not.
-version: 0.0.5
+version: 0.0.6
 homepage: https://github.com/footurist
 author: footurist <footurist@gmx.net>
 repository: https://github.com/footurist
