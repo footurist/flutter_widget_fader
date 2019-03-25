@@ -6,6 +6,10 @@ Supports:
 * Swipe to fade
 * Fading via the functions next() and previous()
 
+## Example
+
+<img src="assets/widgetFaderExample.gif" width="270" height="480" />
+
 ## Installation
 
 Add ``widget_fader: ^0.0.6`` in your ``pubspec.yaml`` dependencies. And import it:
