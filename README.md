@@ -8,8 +8,7 @@ Supports:
 
 ## Example
 
-<iframe src="https://giphy.com/embed/jlcmSkvhF8jOjsg014" width="270" height="480" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/jlcmSkvhF8jOjsg014">via GIPHY</a></p>
-<!-- <img src="assets/widgetFaderExample.gif" width="270" height="480" /> -->
+<img src="https://giphy.com/embed/jlcmSkvhF8jOjsg014" width="270" height="480" />
 
 ## Installation
 
