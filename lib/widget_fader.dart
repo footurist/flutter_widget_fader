@@ -166,8 +166,8 @@ class _WidgetFaderState extends State<WidgetFader> with TickerProviderStateMixin
           fit: StackFit.expand,
           children: _buildChildren(),
         ),
+        _carouselSlider,
         widget.cover?? Container(),
-        _carouselSlider
       ],
     );
   }
